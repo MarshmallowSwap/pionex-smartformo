@@ -419,7 +419,7 @@ let transactions = [
   { id:3, type:'buy',     name:'Buy ETH',          amount:'+1.5 ETH',   date:'2025-03-26', time:'21:05', status:'pending' },
   { id:4, type:'swap',    name:'Swap BTC to USDT', amount:'-820 USDT',  date:'2025-03-25', time:'16:48', status:'failed' },
 ];
-const STATUS_LABEL = { completed:'COMPLETED', pending:'PENDING', failed:'FAILED', queued:'IN CODA', confirming:'IN ATTESA' };
+const STATUS_LABEL = { completed:'COMPLETED', pending:'PENDING', failed:'FAILED', queued:'QUEUED', confirming:'CONFIRMING' };
 const isIncoming = t => t === 'receive';
 
 function arrowSVG(type) {
