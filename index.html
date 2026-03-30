@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+<title>Pionex SmartFormo</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --orange: #FF6B1A;
+  --orange-light: #FF8C42;
+  --orange-dim: rgba(255,107,26,0.15);
+  --bg: #0A0A0C;
+  --surface: #111115;
+  --card: #18181E;
+  --border: rgba(255,255,255,0.07);
+  --border-orange: rgba(255,107,26,0.3);
+  --text: #F2F2F5;
+  --muted: #6B6B7A;
+  --green: #22C55E;
+  --red: #EF4444;
+  --yellow: #EAB308;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body { background: var(--bg); color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; min-height: 100vh; overflow-x: hidden; }
+
+/* MOBILE SHELL */
+.mobile-shell { display: flex; flex-direction: column; min-height: 100dvh; background: #0E0E14; }
+
+.app-header { padding: 18px 20px 12px; display: flex; align-items: center; justify-content: space-between; flex-shrink: 0; }
+.app-logo { display: flex; align-items: center; gap: 7px; }
+.app-logo-icon { width: 26px; height: 26px; }
+.app-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: var(--orange); }
+.app-avatar {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), #FF4500);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 13px; font-weight: 700; color: white; cursor: pointer;
+  border: 2px solid rgba(255,107,26,0.4);
+  transition: transform 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+.app-avatar:active { transform: scale(0.9); box-shadow: 0 0 0 5px rgba(255,107,26,0.2); }
+
+.wallet-card {
+  margin: 4px 16px 16px;
+  background: linear-gradient(135deg, #1A0F05 0%, #200D00 60%, #1A0A00 100%);
+  border: 1px solid rgba(255,107,26,0.25); border-radius: 22px; padding: 20px;
+  position: relative; overflow: hidden; flex-shrink: 0;
+}
+.wallet-card::before {
+  content: ''; position: absolute; top: -40px; right: -40px; width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(255,107,26,0.18), transparent 70%); border-radius: 50%;
+}
+.wallet-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: rgba(255,107,26,0.65); margin-bottom: 4px; }
+.wallet-name { font-family: 'Syne', sans-serif; font-size: 13px; font-weight: 600; color: rgba(255,255,255,0.7); margin-bottom: 12px; }
+.wallet-balance { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 34px; color: white; letter-spacing: -1.5px; line-height: 1; margin-bottom: 4px; }
+.wallet-balance span { font-size: 15px; font-weight: 400; color: var(--orange-light); margin-left: 5px; letter-spacing: 0; }
+.wallet-change { font-family: 'DM Mono', monospace; font-size: 11px; margin-bottom: 16px; }
+.wallet-change.up { color: var(--green); }
+.wallet-change.down { color: var(--red); }
+.wallet-actions { display: flex; gap: 10px; }
+.wallet-btn {
+  flex: 1; padding: 11px 4px; border-radius: 12px; border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif; font-size: 12px; font-weight: 600;
+  cursor: pointer; transition: opacity 0.15s, transform 0.1s; letter-spacing: 0.2px;
+}
+.wallet-btn:active { transform: scale(0.97); opacity: 0.85; }
+.wallet-btn.primary { background: linear-gradient(135deg, var(--orange), #FF4500); color: white; }
+.wallet-btn.secondary { background: rgba(255,107,26,0.12); border: 1px solid rgba(255,107,26,0.22); color: var(--orange-light); }
+
+.tx-section { flex: 1; overflow-y: auto; padding: 0 16px 100px; -webkit-overflow-scrolling: touch; }
+.tx-section::-webkit-scrollbar { display: none; }
+.tx-section-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 12px; position: sticky; top: 0;
+  background: #0E0E14; padding: 8px 0 4px; z-index: 2;
+}
+.tx-section-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 15px; }
+.tx-see-all { font-size: 10px; color: var(--orange); font-family: 'DM Mono', monospace; letter-spacing: 0.5px; }
+
+.tx-entry { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
+.tx-entry:last-child { border-bottom: none; }
+.tx-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tx-icon.outgoing { background: rgba(239,68,68,0.10); }
+.tx-icon.incoming { background: rgba(34,197,94,0.10); }
+.tx-arrow-svg { width: 20px; height: 20px; }
+.tx-meta { flex: 1; min-width: 0; }
+.tx-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tx-datetime { font-family: 'DM Mono', monospace; font-size: 9px; color: var(--muted); margin-top: 3px; }
+.tx-right { text-align: right; flex-shrink: 0; }
+.tx-amount { font-family: 'DM Mono', monospace; font-size: 12px; font-weight: 500; }
+.tx-amount.send, .tx-amount.swap, .tx-amount.buy { color: var(--red); }
+.tx-amount.receive { color: var(--green); }
+.tx-status { font-size: 8.5px; padding: 2px 7px; border-radius: 5px; margin-top: 4px; display: inline-block; font-family: 'DM Mono', monospace; letter-spacing: 0.5px; }
+.tx-status.completed  { background: rgba(34,197,94,0.12);  color: var(--green); }
+.tx-status.pending    { background: rgba(234,179,8,0.12);   color: var(--yellow); }
+.tx-status.failed     { background: rgba(239,68,68,0.12);   color: var(--red); }
+.tx-status.queued     { background: rgba(139,92,246,0.12);  color: #A78BFA; }
+.tx-status.confirming { background: rgba(56,189,248,0.12);  color: #38BDF8; }
+
+.app-nav {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  display: flex; padding: 12px 0 max(12px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+  background: rgba(10,10,14,0.97); backdrop-filter: blur(20px);
+  z-index: 50; justify-content: space-around;
+}
+.nav-item {
+  display: flex; flex-direction: column; align-items: center;
+  font-size: 10px; font-family: 'DM Mono', monospace; color: var(--muted);
+  letter-spacing: 1px; text-transform: uppercase; cursor: pointer; padding: 4px 16px;
+}
+.nav-item.active { color: var(--orange); }
+
+/* SETTINGS DRAWER */
+.settings-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.65); backdrop-filter: blur(4px);
+  z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.3s;
+}
+.settings-overlay.open { opacity: 1; pointer-events: all; }
+.settings-drawer {
+  position: fixed; bottom: 0; left: 0; right: 0;
+  background: var(--surface); border-radius: 24px 24px 0 0;
+  border-top: 1px solid var(--border); z-index: 201;
+  max-height: 90dvh; overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.38s cubic-bezier(0.32,0.72,0,1);
+  padding-bottom: max(16px, env(safe-area-inset-bottom));
+}
+.settings-drawer::-webkit-scrollbar { display: none; }
+.settings-drawer.open { transform: translateY(0); }
+.drawer-handle { width: 36px; height: 4px; background: rgba(255,255,255,0.15); border-radius: 99px; margin: 12px auto 0; }
+.drawer-header { display: flex; align-items: center; justify-content: space-between; padding: 16px 20px 12px; border-bottom: 1px solid var(--border); }
+.drawer-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; }
+.drawer-close { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.06); border: none; color: var(--muted); font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+.drawer-save-row { display: flex; gap: 10px; padding: 14px 20px 10px; }
+.ds-btn { flex: 1; padding: 11px; border-radius: 10px; font-family: 'DM Mono', monospace; font-size: 11px; letter-spacing: 0.5px; cursor: pointer; border: none; }
+.ds-btn.save { background: var(--orange-dim); border: 1px solid var(--border-orange); color: var(--orange-light); }
+.ds-btn.load { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted); }
+#saveMsg { font-size: 10px; color: var(--green); font-family: 'DM Mono', monospace; opacity: 0; transition: opacity 0.4s; text-align: center; padding: 0 20px 6px; min-height: 22px; }
+
+.drawer-section { padding: 16px 20px; border-bottom: 1px solid var(--border); }
+.drawer-section:last-child { border-bottom: none; }
+.dsec-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 14px; }
+.dfield { margin-bottom: 12px; }
+.dfield:last-child { margin-bottom: 0; }
+.dfield label { display: block; font-size: 10px; color: var(--muted); margin-bottom: 5px; font-family: 'DM Mono', monospace; }
+.dfield input, .dfield select {
+  width: 100%; background: var(--card); border: 1px solid var(--border); border-radius: 10px;
+  color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 15px;
+  padding: 12px 14px; outline: none; -webkit-appearance: none; transition: border-color 0.2s;
+}
+.dfield input:focus, .dfield select:focus { border-color: var(--border-orange); }
+.drow2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+.dtx-list { display: flex; flex-direction: column; gap: 10px; }
+.dtx-item { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 12px; }
+.dtx-top { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.dtx-top input { flex: 1; }
+.dtx-remove { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.2); color: var(--red); border-radius: 8px; width: 34px; height: 34px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.dtx-inp { background: var(--card); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; padding: 9px 10px; outline: none; width: 100%; -webkit-appearance: none; transition: border-color 0.2s; }
+.dtx-inp:focus { border-color: var(--border-orange); }
+.dtx-row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+.btn-add-tx { width: 100%; background: var(--orange-dim); border: 1px dashed var(--border-orange); color: var(--orange); border-radius: 10px; padding: 12px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; cursor: pointer; margin-top: 10px; }
+
+/* DESKTOP */
+@media (min-width: 900px) {
+  .mobile-shell, .settings-overlay, .settings-drawer { display: none !important; }
+  .desktop-builder { display: flex; flex-direction: column; min-height: 100vh; }
+
+  .desk-header { display: flex; align-items: center; gap: 14px; padding: 15px 32px; border-bottom: 1px solid var(--border); background: rgba(10,10,12,0.97); backdrop-filter: blur(12px); position: sticky; top: 0; z-index: 100; }
+  .desk-logo { display: flex; align-items: center; gap: 10px; }
+  .desk-logo-icon { width: 30px; height: 30px; }
+  .desk-logo-text { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; color: var(--orange); }
+  .desk-pill { background: var(--orange-dim); border: 1px solid var(--border-orange); color: var(--orange-light); font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 1.5px; padding: 3px 10px; border-radius: 99px; text-transform: uppercase; margin-left: 4px; }
+  .desk-header-right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .hdr-btn { font-family: 'DM Mono', monospace; font-size: 11px; padding: 7px 14px; border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; }
+  .hdr-btn.save { background: var(--orange-dim); border: 1px solid var(--border-orange); color: var(--orange-light); }
+  .hdr-btn.save:hover { background: rgba(255,107,26,0.25); }
+  .hdr-btn.load { background: rgba(255,255,255,0.04); border: 1px solid var(--border); color: var(--muted); }
+  .hdr-btn.load:hover { background: rgba(255,255,255,0.08); color: var(--text); }
+  #deskSaveMsg { font-size: 10px; color: var(--green); font-family: 'DM Mono', monospace; opacity: 0; transition: opacity 0.4s; }
+
+  .desk-workspace { display: grid; grid-template-columns: 400px 1fr; flex: 1; }
+  .desk-panel { background: var(--surface); border-right: 1px solid var(--border); height: calc(100vh - 55px); overflow-y: auto; }
+  .desk-panel::-webkit-scrollbar { width: 4px; }
+  .desk-panel::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+  .panel-section { border-bottom: 1px solid var(--border); padding: 18px 22px; }
+  .section-label { font-family: 'DM Mono', monospace; font-size: 9px; letter-spacing: 2px; text-transform: uppercase; color: var(--orange); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .section-label::after { content: ''; flex: 1; height: 1px; background: var(--border-orange); opacity: 0.4; }
+  .dfield label { font-size: 10px; }
+  .dfield input, .dfield select { font-size: 13px; padding: 9px 12px; border-radius: 8px; }
+  .dtx-inp { font-size: 12px; padding: 7px 10px; }
+
+  .desk-preview { display: flex; align-items: center; justify-content: center; padding: 40px; background: var(--bg); position: relative; overflow: hidden; }
+  .desk-preview::before {
+    content: ''; position: absolute; inset: 0;
+    background: radial-gradient(ellipse 60% 50% at 50% 0%, rgba(255,107,26,0.07) 0%, transparent 70%), repeating-linear-gradient(0deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, rgba(255,255,255,0.02) 39px, rgba(255,255,255,0.02) 40px);
+    pointer-events: none;
+  }
+  .phone-wrap { filter: drop-shadow(0 40px 80px rgba(0,0,0,0.8)) drop-shadow(0 0 60px rgba(255,107,26,0.12)); animation: floatPhone 5s ease-in-out infinite; }
+  @keyframes floatPhone { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+  .phone-outer { width: 300px; background: #0D0D10; border-radius: 44px; border: 1.5px solid rgba(255,255,255,0.1); padding: 12px; box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04); }
+  .phone-notch { width: 80px; height: 22px; background: #0D0D10; border-radius: 0 0 14px 14px; margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .notch-cam { width: 8px; height: 8px; background: #1A1A20; border-radius: 50%; border: 1.5px solid #222228; }
+  .notch-cam.dot { width: 5px; height: 5px; }
+  .phone-screen { background: #0E0E14; border-radius: 30px; overflow: hidden; height: 600px; display: flex; flex-direction: column; }
+  .phone-screen .app-nav { position: static; backdrop-filter: none; padding: 10px 0; }
+  .phone-screen .nav-item { font-size: 9px; padding: 2px 12px; }
+  .phone-screen .tx-section { padding-bottom: 8px; }
+  .phone-screen .app-header { padding: 14px 14px 10px; }
+  .phone-screen .wallet-card { margin: 0 10px 12px; padding: 16px; }
+  .phone-screen .wallet-balance { font-size: 26px; }
+  .phone-screen .wallet-btn { font-size: 10px; padding: 9px 4px; border-radius: 10px; }
+  .phone-screen .tx-entry { gap: 8px; padding: 9px 0; }
+  .phone-screen .tx-name { font-size: 11px; }
+  .phone-screen .tx-arrow-svg { width: 16px; height: 16px; }
+  .phone-screen .tx-icon { width: 32px; height: 32px; }
+  .phone-screen .tx-section-header { background: #0E0E14; padding: 6px 0 2px; }
+
+  .desk-hint { font-size: 10px; color: var(--muted); font-family: 'DM Mono', monospace; text-align: center; padding: 12px; border-top: 1px solid var(--border); }
+}
+@media (max-width: 899px) { .desktop-builder { display: none; } }
+</style>
+</head>
+<body>
+
+<!-- MOBILE SHELL -->
+<div class="mobile-shell">
+  <div class="app-header">
+    <div class="app-logo">
+      <svg class="app-logo-icon" viewBox="0 0 40 40" fill="none">
+        <path d="M8 8L22 8C29.732 8 36 14.268 36 22C36 29.732 29.732 36 22 36L8 36L8 8Z" fill="url(#mlg1)"/>
+        <path d="M8 8L18 18L8 28" fill="url(#mlg2)" opacity="0.7"/>
+        <defs>
+          <linearGradient id="mlg1" x1="8" y1="8" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#FF8C42"/><stop offset="1" stop-color="#FF4500"/></linearGradient>
+          <linearGradient id="mlg2" x1="8" y1="8" x2="18" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#FFB347"/><stop offset="1" stop-color="#FF6B1A"/></linearGradient>
+        </defs>
+      </svg>
+      <span class="app-logo-text">Pionex</span>
+    </div>
+    <div class="app-avatar" id="mobileAvatar" onclick="openSettings()">AK</div>
+  </div>
+
+  <div class="wallet-card">
+    <div class="wallet-label">Portfolio Balance</div>
+    <div class="wallet-name" id="mWalletName">Main Portfolio</div>
+    <div class="wallet-balance" id="mBalance">12,847.34<span id="mCurrency">USDT</span></div>
+    <div class="wallet-change up" id="mChange">&#9650; +4.21% Today</div>
+    <div class="wallet-actions">
+      <button class="wallet-btn primary" id="mBtn1">New Transaction</button>
+      <button class="wallet-btn secondary" id="mBtn2">Buy Crypto</button>
+    </div>
+  </div>
+
+  <div class="tx-section">
+    <div class="tx-section-header">
+      <span class="tx-section-title">Transactions</span>
+      <span class="tx-see-all">SEE ALL &rarr;</span>
+    </div>
+    <div id="mobileTxList"></div>
+  </div>
+
+  <nav class="app-nav">
+    <div class="nav-item active">HOME</div>
+    <div class="nav-item">MARKET</div>
+    <div class="nav-item">BOTS</div>
+    <div class="nav-item">PROFILE</div>
+  </nav>
+</div>
+
+<!-- SETTINGS DRAWER -->
+<div class="settings-overlay" id="settingsOverlay" onclick="closeSettings()"></div>
+<div class="settings-drawer" id="settingsDrawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <span class="drawer-title">Settings</span>
+    <button class="drawer-close" onclick="closeSettings()">&#x2715;</button>
+  </div>
+  <div class="drawer-save-row">
+    <button class="ds-btn save" onclick="saveData()">&#128190; Save</button>
+    <button class="ds-btn load" onclick="loadData()">&#128193; Load</button>
+  </div>
+  <div id="saveMsg"></div>
+
+  <div class="drawer-section">
+    <div class="dsec-label">Wallet</div>
+    <div class="dfield"><label>Wallet Name</label><input type="text" id="walletName" value="Main Portfolio" oninput="render()"/></div>
+    <div class="drow2">
+      <div class="dfield"><label>Balance</label><input type="number" id="balance" value="12847.34" step="0.01" oninput="render()"/></div>
+      <div class="dfield"><label>Currency</label>
+        <select id="currency" onchange="render()"><option>USDT</option><option>BTC</option><option>ETH</option><option>USD</option></select>
+      </div>
+    </div>
+    <div class="drow2">
+      <div class="dfield"><label>Change %</label><input type="text" id="change" value="+4.21%" oninput="render()"/></div>
+      <div class="dfield"><label>Direction</label>
+        <select id="changeDir" onchange="render()"><option value="up">&#9650; Up</option><option value="down">&#9660; Down</option></select>
+      </div>
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="dsec-label">Action Buttons</div>
+    <div class="dfield"><label>Primary Button</label><input type="text" id="btn1" value="New Transaction" oninput="render()"/></div>
+    <div class="dfield"><label>Secondary Button</label><input type="text" id="btn2" value="Buy Crypto" oninput="render()"/></div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="dsec-label">User</div>
+    <div class="drow2">
+      <div class="dfield"><label>Display Name</label><input type="text" id="userName" value="Alex" oninput="render()"/></div>
+      <div class="dfield"><label>Avatar</label><input type="text" id="userAvatar" value="AK" maxlength="2" oninput="render()"/></div>
+    </div>
+  </div>
+
+  <div class="drawer-section">
+    <div class="dsec-label">Transactions</div>
+    <div class="dtx-list" id="txFormList"></div>
+    <button class="btn-add-tx" onclick="addTx()">+ Add Transaction</button>
+  </div>
+</div>
+
+<!-- DESKTOP BUILDER -->
+<div class="desktop-builder">
+  <header class="desk-header">
+    <div class="desk-logo">
+      <svg class="desk-logo-icon" viewBox="0 0 40 40" fill="none">
+        <path d="M8 8L22 8C29.732 8 36 14.268 36 22C36 29.732 29.732 36 22 36L8 36L8 8Z" fill="url(#dlg1)"/>
+        <path d="M8 8L18 18L8 28" fill="url(#dlg2)" opacity="0.7"/>
+        <defs>
+          <linearGradient id="dlg1" x1="8" y1="8" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#FF8C42"/><stop offset="1" stop-color="#FF4500"/></linearGradient>
+          <linearGradient id="dlg2" x1="8" y1="8" x2="18" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#FFB347"/><stop offset="1" stop-color="#FF6B1A"/></linearGradient>
+        </defs>
+      </svg>
+      <span class="desk-logo-text">Pionex</span>
+      <span class="desk-pill">SmartFormo</span>
+    </div>
+    <div class="desk-header-right">
+      <button class="hdr-btn save" onclick="saveData()">&#128190; Save</button>
+      <button class="hdr-btn load" onclick="loadData()">&#128193; Load</button>
+      <span id="deskSaveMsg"></span>
+      <span style="color:#2A2A35;margin:0 6px">|</span>
+      <span style="font-size:11px;color:var(--muted);font-family:'DM Mono',monospace;">Builder &middot; v1.2</span>
+    </div>
+  </header>
+
+  <div class="desk-workspace">
+    <div class="desk-panel">
+      <div class="panel-section">
+        <div class="section-label">Wallet</div>
+        <div class="dfield"><label>Wallet Name</label><input type="text" id="d_walletName" value="Main Portfolio" oninput="syncDesk('walletName',this.value)"/></div>
+        <div class="drow2">
+          <div class="dfield"><label>Balance</label><input type="number" id="d_balance" value="12847.34" step="0.01" oninput="syncDesk('balance',this.value)"/></div>
+          <div class="dfield"><label>Currency</label>
+            <select id="d_currency" onchange="syncDesk('currency',this.value)"><option>USDT</option><option>BTC</option><option>ETH</option><option>USD</option></select>
+          </div>
+        </div>
+        <div class="drow2">
+          <div class="dfield"><label>Change %</label><input type="text" id="d_change" value="+4.21%" oninput="syncDesk('change',this.value)"/></div>
+          <div class="dfield"><label>Direction</label>
+            <select id="d_changeDir" onchange="syncDesk('changeDir',this.value)"><option value="up">&#9650; Up</option><option value="down">&#9660; Down</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-label">Action Buttons</div>
+        <div class="dfield"><label>Primary Button</label><input type="text" id="d_btn1" value="New Transaction" oninput="syncDesk('btn1',this.value)"/></div>
+        <div class="dfield"><label>Secondary Button</label><input type="text" id="d_btn2" value="Buy Crypto" oninput="syncDesk('btn2',this.value)"/></div>
+      </div>
+      <div class="panel-section">
+        <div class="section-label">User</div>
+        <div class="drow2">
+          <div class="dfield"><label>Display Name</label><input type="text" id="d_userName" value="Alex" oninput="syncDesk('userName',this.value)"/></div>
+          <div class="dfield"><label>Avatar</label><input type="text" id="d_userAvatar" value="AK" maxlength="2" oninput="syncDesk('userAvatar',this.value)"/></div>
+        </div>
+      </div>
+      <div class="panel-section">
+        <div class="section-label">Transactions</div>
+        <div class="dtx-list" id="deskTxFormList"></div>
+        <button class="btn-add-tx" onclick="addTx()">+ Add Transaction</button>
+      </div>
+      <div class="desk-hint">Live preview &middot; SmartFormo v1.2</div>
+    </div>
+
+    <div class="desk-preview">
+      <div class="phone-wrap">
+        <div class="phone-outer">
+          <div class="phone-notch"><div class="notch-cam dot"></div><div class="notch-cam"></div></div>
+          <div class="phone-screen" id="phoneScreen"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// STATE
+let state = { walletName:'Main Portfolio', balance:'12847.34', currency:'USDT', change:'+4.21%', changeDir:'up', btn1:'New Transaction', btn2:'Buy Crypto', userName:'Alex', userAvatar:'AK' };
+let transactions = [
+  { id:1, type:'receive', name:'BTC Transfer In',  amount:'+0.024 BTC', date:'2025-03-28', time:'14:32', status:'completed' },
+  { id:2, type:'send',    name:'USDT to Binance',  amount:'-500 USDT',  date:'2025-03-27', time:'09:15', status:'completed' },
+  { id:3, type:'buy',     name:'Buy ETH',          amount:'+1.5 ETH',   date:'2025-03-26', time:'21:05', status:'pending' },
+  { id:4, type:'swap',    name:'Swap BTC to USDT', amount:'-820 USDT',  date:'2025-03-25', time:'16:48', status:'failed' },
+];
+const STATUS_LABEL = { completed:'COMPLETED', pending:'PENDING', failed:'FAILED', queued:'IN CODA', confirming:'IN ATTESA' };
+const isIncoming = t => t === 'receive';
+
+function arrowSVG(type) {
+  return isIncoming(type)
+    ? `<svg class="tx-arrow-svg" viewBox="0 0 24 24" fill="none"><path d="M19 12H5M5 12L11 6M5 12L11 18" stroke="#22C55E" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`
+    : `<svg class="tx-arrow-svg" viewBox="0 0 24 24" fill="none"><path d="M5 12H19M19 12L13 6M19 12L13 18" stroke="#EF4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
+// DRAWER
+function openSettings() {
+  document.getElementById('settingsOverlay').classList.add('open');
+  document.getElementById('settingsDrawer').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+function closeSettings() {
+  document.getElementById('settingsOverlay').classList.remove('open');
+  document.getElementById('settingsDrawer').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+function g(id) { const e = document.getElementById(id); return e ? e.value : ''; }
+
+// Mobile inputs -> state
+function render() {
+  state.walletName = g('walletName');
+  state.balance    = g('balance');
+  state.currency   = g('currency');
+  state.change     = g('change');
+  state.changeDir  = g('changeDir');
+  state.btn1       = g('btn1');
+  state.btn2       = g('btn2');
+  state.userName   = g('userName');
+  state.userAvatar = g('userAvatar');
+  renderMobile();
+  renderDesktopPhone();
+}
+
+// Desktop inputs -> state + sync mobile drawer
+function syncDesk(field, val) {
+  state[field] = val;
+  const el = document.getElementById(field);
+  if (el) el.value = val;
+  renderMobile();
+  renderDesktopPhone();
+}
+
+function renderMobile() {
+  const s = state;
+  const av = document.getElementById('mobileAvatar');
+  if (av) av.textContent = s.userAvatar || '?';
+  const wn = document.getElementById('mWalletName');
+  if (wn) wn.textContent = s.walletName;
+  const cu = document.getElementById('mCurrency');
+  if (cu) cu.textContent = s.currency;
+  const mb = document.getElementById('mBalance');
+  if (mb) {
+    const bal = parseFloat(s.balance)||0;
+    mb.childNodes[0].textContent = bal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  }
+  const ch = document.getElementById('mChange');
+  if (ch) {
+    ch.textContent = (s.changeDir==='up'?'\u25b2 ':'\u25bc ') + s.change + ' Today';
+    ch.className = 'wallet-change ' + s.changeDir;
+  }
+  const b1 = document.getElementById('mBtn1');
+  if (b1) b1.textContent = s.btn1;
+  const b2 = document.getElementById('mBtn2');
+  if (b2) b2.textContent = s.btn2;
+  const tl = document.getElementById('mobileTxList');
+  if (tl) tl.innerHTML = renderTxHTML();
+}
+
+function renderDesktopPhone() {
+  const ph = document.getElementById('phoneScreen');
+  if (!ph) return;
+  const s = state;
+  const bal = parseFloat(s.balance)||0;
+  ph.innerHTML = `
+    <div class="app-header">
+      <div class="app-logo">
+        <svg class="app-logo-icon" viewBox="0 0 40 40" fill="none">
+          <path d="M8 8L22 8C29.732 8 36 14.268 36 22C36 29.732 29.732 36 22 36L8 36L8 8Z" fill="url(#pp1)"/>
+          <path d="M8 8L18 18L8 28" fill="url(#pp2)" opacity="0.7"/>
+          <defs>
+            <linearGradient id="pp1" x1="8" y1="8" x2="36" y2="36" gradientUnits="userSpaceOnUse"><stop stop-color="#FF8C42"/><stop offset="1" stop-color="#FF4500"/></linearGradient>
+            <linearGradient id="pp2" x1="8" y1="8" x2="18" y2="28" gradientUnits="userSpaceOnUse"><stop stop-color="#FFB347"/><stop offset="1" stop-color="#FF6B1A"/></linearGradient>
+          </defs>
+        </svg>
+        <span class="app-logo-text">Pionex</span>
+      </div>
+      <div class="app-avatar" style="cursor:default;width:30px;height:30px;font-size:11px;">${s.userAvatar||'?'}</div>
+    </div>
+    <div class="wallet-card">
+      <div class="wallet-label">Portfolio Balance</div>
+      <div class="wallet-name">${s.walletName}</div>
+      <div class="wallet-balance">${bal.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}<span>${s.currency}</span></div>
+      <div class="wallet-change ${s.changeDir}">${s.changeDir==='up'?'&#9650;':'&#9660;'} ${s.change} Today</div>
+      <div class="wallet-actions">
+        <button class="wallet-btn primary">${s.btn1}</button>
+        <button class="wallet-btn secondary">${s.btn2}</button>
+      </div>
+    </div>
+    <div class="tx-section">
+      <div class="tx-section-header">
+        <span class="tx-section-title">Transactions</span>
+        <span class="tx-see-all">SEE ALL &rarr;</span>
+      </div>
+      ${renderTxHTML()||'<div style="color:#6B6B7A;font-size:10px;text-align:center;padding:16px;font-family:DM Mono,monospace">No transactions</div>'}
+    </div>
+    <div class="app-nav">
+      <div class="nav-item active">HOME</div>
+      <div class="nav-item">MARKET</div>
+      <div class="nav-item">BOTS</div>
+      <div class="nav-item">PROFILE</div>
+    </div>`;
+}
+
+function renderTxHTML() {
+  return transactions.map(tx => `
+    <div class="tx-entry">
+      <div class="tx-icon ${isIncoming(tx.type)?'incoming':'outgoing'}">${arrowSVG(tx.type)}</div>
+      <div class="tx-meta">
+        <div class="tx-name">${tx.name}</div>
+        <div class="tx-datetime">${tx.date} &middot; ${tx.time}</div>
+      </div>
+      <div class="tx-right">
+        <div class="tx-amount ${tx.type}">${tx.amount}</div>
+        <div class="tx-status ${tx.status}">${STATUS_LABEL[tx.status]||tx.status.toUpperCase()}</div>
+      </div>
+    </div>`).join('');
+}
+
+// TX FORMS
+function renderTxForms() {
+  const html = transactions.map(tx => `
+    <div class="dtx-item">
+      <div class="dtx-top">
+        <input class="dtx-inp" type="text" value="${tx.name}" placeholder="Name" oninput="updateTx(${tx.id},'name',this.value)" style="flex:1"/>
+        <select class="dtx-inp" onchange="updateTx(${tx.id},'type',this.value)">
+          ${['receive','send','buy','swap'].map(t=>`<option value="${t}"${tx.type===t?' selected':''}>${t}</option>`).join('')}
+        </select>
+        <button class="dtx-remove" onclick="removeTx(${tx.id})">&#x2715;</button>
+      </div>
+      <div class="dtx-row2">
+        <input class="dtx-inp" type="text" value="${tx.amount}" placeholder="Amount" oninput="updateTx(${tx.id},'amount',this.value)"/>
+        <select class="dtx-inp" onchange="updateTx(${tx.id},'status',this.value)">
+          ${['completed','pending','failed','queued','confirming'].map(s=>`<option value="${s}"${tx.status===s?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <div class="dtx-row2" style="margin-top:8px">
+        <input class="dtx-inp" type="text" value="${tx.date}" placeholder="YYYY-MM-DD" oninput="updateTx(${tx.id},'date',this.value)"/>
+        <input class="dtx-inp" type="text" value="${tx.time}" placeholder="HH:MM" oninput="updateTx(${tx.id},'time',this.value)"/>
+      </div>
+    </div>`).join('');
+  ['txFormList','deskTxFormList'].forEach(id => { const e = document.getElementById(id); if(e) e.innerHTML = html; });
+}
+
+function addTx() {
+  transactions.push({ id:Date.now(), type:'receive', name:'New Transaction', amount:'+0.00', date:new Date().toISOString().split('T')[0], time:'12:00', status:'pending' });
+  renderTxForms(); renderMobile(); renderDesktopPhone();
+}
+function removeTx(id) {
+  transactions = transactions.filter(t=>t.id!==id);
+  renderTxForms(); renderMobile(); renderDesktopPhone();
+}
+function updateTx(id, field, val) {
+  const tx = transactions.find(t=>t.id===id);
+  if (tx) { tx[field]=val; renderMobile(); renderDesktopPhone(); }
+}
+
+// SAVE / LOAD
+function collectData() { return { ...state, transactions }; }
+function applyData(data) {
+  ['walletName','balance','currency','change','changeDir','btn1','btn2','userName','userAvatar'].forEach(k => {
+    if (data[k]===undefined) return;
+    state[k] = data[k];
+    [k, 'd_'+k].forEach(id => { const e=document.getElementById(id); if(e) e.value=data[k]; });
+  });
+  if (data.transactions) transactions = data.transactions;
+}
+function flash(msg) {
+  ['saveMsg','deskSaveMsg'].forEach(id => {
+    const e = document.getElementById(id);
+    if (!e) return;
+    e.textContent = msg; e.style.opacity='1';
+    setTimeout(()=>{ e.style.opacity='0'; }, 2200);
+  });
+}
+function saveData() {
+  try { localStorage.setItem('pionex_smartformo', JSON.stringify(collectData())); flash('Saved!'); }
+  catch(e) { alert('Save error: '+e.message); }
+}
+function loadData() {
+  try {
+    const raw = localStorage.getItem('pionex_smartformo');
+    if (!raw) { alert('No saved data found.'); return; }
+    applyData(JSON.parse(raw)); renderTxForms(); renderMobile(); renderDesktopPhone(); flash('Loaded!');
+  } catch(e) { alert('Load error: '+e.message); }
+}
+
+// INIT
+renderTxForms();
+renderMobile();
+renderDesktopPhone();
+// Auto-load saved
+try {
+  const raw = localStorage.getItem('pionex_smartformo');
+  if (raw) { applyData(JSON.parse(raw)); renderTxForms(); renderMobile(); renderDesktopPhone(); }
+} catch(e) {}
+</script>
+</body>
+</html>
