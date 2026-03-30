@@ -552,29 +552,71 @@ function renderTxHTML() {
     </div>`).join('');
 }
 
-// TX FORMS
+// TX FORMS — event delegation: no inline oninput, form never re-renders while typing
 function renderTxForms() {
   const html = transactions.map(tx => `
-    <div class="dtx-item">
+    <div class="dtx-item" data-txid="${tx.id}">
       <div class="dtx-top">
-        <input class="dtx-inp" type="text" value="${tx.name}" placeholder="Name" oninput="updateTx(${tx.id},'name',this.value)" style="flex:1"/>
-        <select class="dtx-inp" onchange="updateTx(${tx.id},'type',this.value)">
+        <input class="dtx-inp" type="text" data-field="name" value="${tx.name.replace(/"/g,'&quot;')}" placeholder="Name" style="flex:1"/>
+        <select class="dtx-inp" data-field="type">
           ${['receive','send','buy','swap'].map(t=>`<option value="${t}"${tx.type===t?' selected':''}>${t}</option>`).join('')}
         </select>
-        <button class="dtx-remove" onclick="removeTx(${tx.id})">&#x2715;</button>
+        <button class="dtx-remove" data-removeid="${tx.id}">&#x2715;</button>
       </div>
       <div class="dtx-row2">
-        <input class="dtx-inp" type="text" value="${tx.amount}" placeholder="Amount" oninput="updateTx(${tx.id},'amount',this.value)"/>
-        <select class="dtx-inp" onchange="updateTx(${tx.id},'status',this.value)">
+        <input class="dtx-inp" type="text" data-field="amount" value="${tx.amount.replace(/"/g,'&quot;')}" placeholder="Amount"/>
+        <select class="dtx-inp" data-field="status">
           ${['completed','pending','failed','queued','confirming'].map(s=>`<option value="${s}"${tx.status===s?' selected':''}>${s}</option>`).join('')}
         </select>
       </div>
       <div class="dtx-row2" style="margin-top:8px">
-        <input class="dtx-inp" type="text" value="${tx.date}" placeholder="YYYY-MM-DD" oninput="updateTx(${tx.id},'date',this.value)"/>
-        <input class="dtx-inp" type="text" value="${tx.time}" placeholder="HH:MM" oninput="updateTx(${tx.id},'time',this.value)"/>
+        <input class="dtx-inp" type="text" data-field="date" value="${tx.date}" placeholder="YYYY-MM-DD"/>
+        <input class="dtx-inp" type="text" data-field="time" value="${tx.time}" placeholder="HH:MM"/>
       </div>
     </div>`).join('');
-  ['txFormList','deskTxFormList'].forEach(id => { const e = document.getElementById(id); if(e) e.innerHTML = html; });
+
+  ['txFormList','deskTxFormList'].forEach(containerId => {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = html;
+
+    // Attach delegated listeners once per container
+    container.addEventListener('input', function(e) {
+      const item = e.target.closest('[data-txid]');
+      if (!item || !e.target.dataset.field) return;
+      const id = Number(item.dataset.txid);
+      const tx = transactions.find(t => t.id === id);
+      if (tx) {
+        tx[e.target.dataset.field] = e.target.value;
+        // Update preview without touching the form
+        renderMobile();
+        if (window.innerWidth >= 900) renderDesktopPhone();
+      }
+    });
+
+    container.addEventListener('change', function(e) {
+      if (e.target.tagName !== 'SELECT') return;
+      const item = e.target.closest('[data-txid]');
+      if (!item || !e.target.dataset.field) return;
+      const id = Number(item.dataset.txid);
+      const tx = transactions.find(t => t.id === id);
+      if (tx) {
+        tx[e.target.dataset.field] = e.target.value;
+        renderMobile();
+        if (window.innerWidth >= 900) renderDesktopPhone();
+      }
+    });
+
+    container.addEventListener('click', function(e) {
+      const btn = e.target.closest('[data-removeid]');
+      if (!btn) return;
+      const id = Number(btn.dataset.removeid);
+      transactions = transactions.filter(t => t.id !== id);
+      renderTxForms();
+      renderMobile();
+      renderDesktopPhone();
+    });
+  });
 }
 
 function addTx() {
