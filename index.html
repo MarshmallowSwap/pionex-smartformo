@@ -95,10 +95,14 @@ body { background: var(--bg); color: var(--text); font-family: MiSans, sans-seri
 
 .tx-entry { display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,0.04); }
 .tx-entry:last-child { border-bottom: none; }
-.tx-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.tx-icon-wrap { display: flex; flex-direction: column; align-items: center; gap: 3px; flex-shrink: 0; }
+.tx-icon { width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; }
 .tx-icon.outgoing { background: rgba(239,68,68,0.10); }
 .tx-icon.incoming { background: rgba(34,197,94,0.10); }
 .tx-arrow-svg { width: 20px; height: 20px; }
+.tx-dir-label { font-size: 8px; font-family: MiSans, sans-serif; font-weight: 600; letter-spacing: 0.3px; text-transform: uppercase; }
+.tx-dir-label.outgoing { color: var(--red); opacity: 0.8; }
+.tx-dir-label.incoming { color: var(--green); opacity: 0.8; }
 .tx-meta { flex: 1; min-width: 0; }
 .tx-name { font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tx-datetime { font-family: MiSans, sans-serif; font-size: 9px; color: var(--muted); margin-top: 3px; }
@@ -232,6 +236,7 @@ body { background: var(--bg); color: var(--text); font-family: MiSans, sans-seri
   .phone-screen .tx-name { font-size: 11px; }
   .phone-screen .tx-arrow-svg { width: 16px; height: 16px; }
   .phone-screen .tx-icon { width: 32px; height: 32px; }
+  .phone-screen .tx-dir-label { font-size: 7px; }
   .phone-screen .tx-section-header { background: #0E0E14; padding: 6px 0 2px; }
 
   .desk-hint { font-size: 10px; color: var(--muted); font-family: MiSans, sans-serif; text-align: center; padding: 12px; border-top: 1px solid var(--border); }
@@ -416,8 +421,8 @@ let state = { walletName:'Main Portfolio', balance:'12847.34', currency:'USDT', 
 let transactions = [
   { id:1, type:'receive', name:'BTC Transfer In',  amount:'+0.024 BTC', date:'2025-03-28', time:'14:32', status:'completed' },
   { id:2, type:'send',    name:'USDT to Binance',  amount:'-500 USDT',  date:'2025-03-27', time:'09:15', status:'completed' },
-  { id:3, type:'buy',     name:'Buy ETH',          amount:'+1.5 ETH',   date:'2025-03-26', time:'21:05', status:'pending' },
-  { id:4, type:'swap',    name:'Swap BTC to USDT', amount:'-820 USDT',  date:'2025-03-25', time:'16:48', status:'failed' },
+  { id:3, type:'receive', name:'Buy ETH',          amount:'+1.5 ETH',   date:'2025-03-26', time:'21:05', status:'pending' },
+  { id:4, type:'send',    name:'Swap BTC to USDT', amount:'-820 USDT',  date:'2025-03-25', time:'16:48', status:'failed' },
 ];
 const STATUS_LABEL = { completed:'COMPLETED', pending:'PENDING', failed:'FAILED', queued:'QUEUED', confirming:'CONFIRMING' };
 const isIncoming = t => t === 'receive';
@@ -538,9 +543,16 @@ function renderDesktopPhone() {
 }
 
 function renderTxHTML() {
-  return transactions.map(tx => `
+  return transactions.map(tx => {
+    const incoming = isIncoming(tx.type);
+    const dir = incoming ? 'incoming' : 'outgoing';
+    const dirLabel = incoming ? 'Deposit' : 'Withdrawal';
+    return `
     <div class="tx-entry">
-      <div class="tx-icon ${isIncoming(tx.type)?'incoming':'outgoing'}">${arrowSVG(tx.type)}</div>
+      <div class="tx-icon-wrap">
+        <div class="tx-icon ${dir}">${arrowSVG(tx.type)}</div>
+        <span class="tx-dir-label ${dir}">${dirLabel}</span>
+      </div>
       <div class="tx-meta">
         <div class="tx-name">${tx.name}</div>
         <div class="tx-datetime">${tx.date} &middot; ${tx.time}</div>
@@ -549,7 +561,8 @@ function renderTxHTML() {
         <div class="tx-amount ${tx.type}">${tx.amount}</div>
         <div class="tx-status ${tx.status}">${STATUS_LABEL[tx.status]||tx.status.toUpperCase()}</div>
       </div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 }
 
 // TX FORMS — event delegation: no inline oninput, form never re-renders while typing
